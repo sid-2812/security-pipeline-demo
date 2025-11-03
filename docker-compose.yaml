@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  node-app:
+    build: ./node-app
+    container_name: node-app
+    ports:
+      - "3000:3000"
+
+  python-app:
+    build: ./python-app
+    container_name: python-app
+    ports:
+      - "5000:5000"
+
+  sonarqube:
+    image: sonarqube:latest
+    container_name: sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
