@@ -1,63 +1,37 @@
-# Triggering workflow again after self-hosted runner setup
-name: Multi-Service SonarQube Scan
+name: SonarQube Scan
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  sonar-scans:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [node-app, python-app]   # scans both services
+  sonar:
+    name: Run SonarQube Analysis
+    runs-on: self-hosted
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up JDK 17 (required for SonarScanner)
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Set up Node (for Node app)
-        if: matrix.service == 'node-app'
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      - name: Set up Python (for Python app)
-        if: matrix.service == 'python-app'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       - name: Install dependencies
-        working-directory: ${{ matrix.service }}
+        run: npm install
+
+      - name: Run SonarQube Scanner
+        env:
+          SONAR_HOST_URL: http://192.168.183.202:9000
+          SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -f package.json ]; then
-            npm install
-          elif [ -f requirements.txt ]; then
-            pip install -r requirements.txt
-          else
-            echo "No dependencies file found for ${{ matrix.service }}"
-          fi
-
-      - name: Build Docker image
-        working-directory: ${{ matrix.service }}
-        run: |
-          docker build -t ${{ matrix.service }}:latest .
-
-- name: Run SonarQube Scan
-  run: |
-    sonar-scanner \
-      -Dsonar.projectKey=node-app \
-      -Dsonar.sources=. \
-      -Dsonar.host.url=http://192.168.183.202:9000 \
-      -Dsonar.login=squ_60c37720f882a30226e70aad82dee17aaddcc205
-
-
+          sonar-scanner \
+            -Dsonar.projectKey=node-app \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=${SONAR_HOST_URL} \
+            -Dsonar.login=${SONAR_LOGIN}
