@@ -1,5 +1,4 @@
 # Triggering workflow again after self-hosted runner setup
-runs-on: self-hosted
 name: Multi-Service SonarQube Scan
 
 on:
