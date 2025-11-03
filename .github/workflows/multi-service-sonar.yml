@@ -23,7 +23,11 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Verify Sonar Scanner Installation
+        run: |
+          sonar-scanner -v || echo "Sonar scanner not found. Ensure it's installed on the self-hosted runner."
 
       - name: Run SonarQube Scanner
         env:
@@ -34,4 +38,5 @@ jobs:
             -Dsonar.projectKey=node-app \
             -Dsonar.sources=. \
             -Dsonar.host.url=${SONAR_HOST_URL} \
-            -Dsonar.login=${SONAR_LOGIN}
+            -Dsonar.login=${SONAR_LOGIN} \
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
